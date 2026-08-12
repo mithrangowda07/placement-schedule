@@ -1,5 +1,5 @@
-import type { Company } from '../types/company';
-import type { PlacementEvent } from '../types/event';
+import type { Company } from '../types/company.js';
+import type { PlacementEvent } from '../types/event.js';
 
 export const INITIAL_COMPANIES: Company[] = [
   {

@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { connectToDatabase } from '../src/lib/mongodb';
-import { INITIAL_COMPANIES, INITIAL_EVENTS } from '../src/services/seedData';
+import { connectToDatabase } from '../src/lib/mongodb.js';
+import { INITIAL_COMPANIES, INITIAL_EVENTS } from '../src/services/seedData.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {
