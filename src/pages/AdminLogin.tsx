@@ -45,7 +45,7 @@ export const AdminLogin: React.FC = () => {
           <div className="w-14 h-14 bg-indigo-600 text-white rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-indigo-600/30">
             <ShieldCheck className="w-8 h-8" />
           </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white">RVCE Placement Hub</h2>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white">RVCE Placement Admin</h2>
           <p className="text-xs sm:text-sm text-slate-400">Admin Portal Authentication</p>
         </div>
 

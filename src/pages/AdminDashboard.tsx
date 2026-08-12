@@ -67,7 +67,7 @@ export const AdminDashboard: React.FC = () => {
               <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold leading-tight text-white">RVCE Placement Hub Dashboard</h1>
+              <h1 className="text-xl sm:text-2xl font-bold leading-tight text-white">RVCE Placement Updates Dashboard</h1>
               <p className="text-xs text-slate-400">Admin Management Portal</p>
             </div>
           </div>

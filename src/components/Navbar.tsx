@@ -35,7 +35,7 @@ export const Navbar: React.FC = () => {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-base md:text-xl tracking-tight text-white group-hover:text-indigo-200 transition-colors whitespace-nowrap">
-                  RVCE Placement Hub
+                  RVCE Placement Updates
                 </span>
                 <span className="hidden md:inline-block bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap">
                   2026 Batch

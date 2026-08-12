@@ -168,10 +168,10 @@ export const Home: React.FC = () => {
               RVCE Placement Season 2026
             </span>
             <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
-              RVCE Placement Hub
+              RVCE Placement Updates
             </h1>
-            <p className="text-indigo-200/90 text-sm sm:text-base font-medium">
-              Never miss a placement deadline.
+            <p className="text-slate-300/80 text-xs sm:text-sm font-normal leading-relaxed max-w-2xl">
+              Get the latest RVCE placement updates, company registration deadlines, online assessment dates, interview schedules and other important placement activities in one place.
             </p>
           </div>
 
