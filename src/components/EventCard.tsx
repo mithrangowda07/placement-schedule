@@ -11,7 +11,7 @@ interface EventCardProps {
 }
 
 export const EventCard: React.FC<EventCardProps> = ({ event, companyName, showCompanyHeader = false }) => {
-  const timingStatus = getEventTimingStatus(event.dateTime);
+  const timingStatus = getEventTimingStatus(event.dateTime, event.date);
 
   const getStatusBadge = () => {
     switch (timingStatus) {

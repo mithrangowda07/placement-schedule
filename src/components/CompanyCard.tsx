@@ -12,7 +12,7 @@ interface CompanyCardProps {
 
 export const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
   const nextEvent = company.nextEvent;
-  const timingStatus = nextEvent ? getEventTimingStatus(nextEvent.dateTime) : null;
+  const timingStatus = nextEvent ? getEventTimingStatus(nextEvent.dateTime, nextEvent.date) : null;
 
   const getBadgeStyle = () => {
     if (!timingStatus) return 'bg-slate-100 text-slate-600 border-slate-200';

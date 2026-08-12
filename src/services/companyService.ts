@@ -1,6 +1,6 @@
 import type { Company, CompanyWithEvents } from '../types/company';
 import type { PlacementEvent } from '../types/event';
-import { parseAsIST } from '../utils/dateUtils';
+import { parseAsIST, getEventTimingStatus } from '../utils/dateUtils';
 
 /**
  * Fetch all placement companies with their associated events from MongoDB API.
@@ -32,7 +32,7 @@ function attachEventsToCompanies(companies: Company[], events: PlacementEvent[])
       .filter((e) => e.companyId === compId || e.companyId === comp.companyId || e.companyId === comp._id)
       .sort((a, b) => parseAsIST(a.dateTime).getTime() - parseAsIST(b.dateTime).getTime());
 
-    const upcomingEvents = compEvents.filter((e) => parseAsIST(e.dateTime).getTime() >= nowMs);
+    const upcomingEvents = compEvents.filter((e) => getEventTimingStatus(e.dateTime, e.date) !== 'PAST');
     const nextEvent = upcomingEvents.length > 0 ? upcomingEvents[0] : undefined;
 
     return {
@@ -64,8 +64,7 @@ export async function getCompanyById(id: string): Promise<CompanyWithEvents | nu
       (a, b) => parseAsIST(a.dateTime).getTime() - parseAsIST(b.dateTime).getTime()
     );
 
-    const nowMs = Date.now();
-    const upcomingEvents = compEvents.filter((e) => parseAsIST(e.dateTime).getTime() >= nowMs);
+    const upcomingEvents = compEvents.filter((e) => getEventTimingStatus(e.dateTime, e.date) !== 'PAST');
 
     return {
       ...comp,

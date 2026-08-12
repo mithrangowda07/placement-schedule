@@ -32,11 +32,10 @@ export const AdminDashboard: React.FC = () => {
 
     companies.forEach((comp) => {
       comp.events.forEach((evt) => {
-        const evtMs = parseAsIST(evt.dateTime).getTime();
-        const timingStatus = getEventTimingStatus(evt.dateTime);
-        const isThisWk = isEventThisWeek(evt.dateTime);
+        const timingStatus = getEventTimingStatus(evt.dateTime, evt.date);
+        const isThisWk = isEventThisWeek(evt.dateTime, evt.date);
 
-        if (evtMs >= nowMs - 86400000) totalEvents++;
+        if (timingStatus !== 'PAST') totalEvents++;
         if (timingStatus === 'TODAY') eventsToday++;
         if (isThisWk) eventsThisWeek++;
       });

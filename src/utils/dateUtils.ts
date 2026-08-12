@@ -3,7 +3,30 @@ import type { PlacementEvent } from '../types/event';
 const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000; // +05:30 in ms
 
 /**
- * Returns current Date in IST.
+ * Returns YYYY-MM-DD date string in IST (Asia/Kolkata) for any timestamp/Date input.
+ * Timezone-independent.
+ */
+export function getISTDateString(dateInput?: Date | number | string): string {
+  if (!dateInput) return '';
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return '';
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(d);
+}
+
+/**
+ * Returns tomorrow's YYYY-MM-DD date string in IST (Asia/Kolkata).
+ */
+export function getISTTomorrowDateString(refMs: number = Date.now()): string {
+  const todayStr = getISTDateString(refMs);
+  const parts = todayStr.split('-').map((v) => parseInt(v, 10));
+  if (parts.length < 3) return '';
+  const [year, month, day] = parts;
+  const tomorrowDate = new Date(Date.UTC(year, month - 1, day + 1));
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(tomorrowDate);
+}
+
+/**
+ * Returns current Date object in IST timezone.
  */
 export function getNowIST(): Date {
   const now = new Date();
@@ -12,7 +35,7 @@ export function getNowIST(): Date {
 }
 
 /**
- * Constructs an ISO string with +05:30 offset from YYYY-MM-DD and optional HH:mm.
+ * Constructs an ISO 8601 string with +05:30 offset from YYYY-MM-DD and optional HH:mm.
  */
 export function buildISTDateTime(date: string, time?: string): string {
   if (!time || !time.trim()) {
@@ -23,53 +46,45 @@ export function buildISTDateTime(date: string, time?: string): string {
 }
 
 /**
- * Parses an ISO date string into a Date object normalized to IST components.
+ * Parses an ISO date string or Date input into a valid Date object.
  */
-export function parseAsIST(dateTimeStr: string): Date {
-  const d = new Date(dateTimeStr);
+export function parseAsIST(dateTimeStr?: string | Date): Date {
+  if (!dateTimeStr) return new Date();
+  const d = typeof dateTimeStr === 'string' ? new Date(dateTimeStr) : dateTimeStr;
   if (isNaN(d.getTime())) return new Date();
   return d;
-}
-
-/**
- * Gets midnight IST timestamp for a given date.
- */
-function getStartOfDayIST(date: Date): number {
-  const y = date.getUTCFullYear();
-  const m = date.getUTCMonth();
-  const d = date.getUTCDate();
-  return Date.UTC(y, m, d) - IST_OFFSET_MS;
 }
 
 export type EventTimingStatus = 'TODAY' | 'TOMORROW' | 'FUTURE' | 'PAST';
 
 /**
- * Categorizes an event's dateTime relative to current IST time.
+ * Categorizes an event's timing strictly based on its scheduled eventDateTime / event.date in IST.
+ * NEVER uses createdAt or updatedAt metadata.
  */
-export function getEventTimingStatus(dateTimeStr: string): EventTimingStatus {
-  const eventDate = parseAsIST(dateTimeStr);
-  const nowIST = getNowIST();
+export function getEventTimingStatus(dateTimeStr?: string, dateStr?: string): EventTimingStatus {
+  if (!dateTimeStr) return 'PAST';
 
-  const eventTimeMs = eventDate.getTime();
-  const nowMs = nowIST.getTime();
+  const eventMs = new Date(dateTimeStr).getTime();
+  if (isNaN(eventMs)) return 'PAST';
 
-  const todayStart = getStartOfDayIST(nowIST);
-  const todayEnd = todayStart + 24 * 60 * 60 * 1000 - 1;
-  const tomorrowEnd = todayEnd + 24 * 60 * 60 * 1000;
+  const currentMs = Date.now();
+  const todayIST = getISTDateString(currentMs);
+  const tomorrowIST = getISTTomorrowDateString(currentMs);
+  const eventIST = dateStr || getISTDateString(dateTimeStr);
 
-  if (eventTimeMs < nowMs && eventTimeMs < todayStart) {
-    return 'PAST';
-  }
-
-  if (eventTimeMs >= todayStart && eventTimeMs <= todayEnd) {
+  if (eventIST === todayIST) {
     return 'TODAY';
   }
 
-  if (eventTimeMs > todayEnd && eventTimeMs <= tomorrowEnd) {
+  if (eventIST === tomorrowIST) {
     return 'TOMORROW';
   }
 
-  if (eventTimeMs > tomorrowEnd) {
+  if (eventMs < currentMs && eventIST < todayIST) {
+    return 'PAST';
+  }
+
+  if (eventMs >= currentMs || eventIST > tomorrowIST) {
     return 'FUTURE';
   }
 
@@ -78,7 +93,6 @@ export function getEventTimingStatus(dateTimeStr: string): EventTimingStatus {
 
 /**
  * Formats time from HH:mm or ISO string to 12-hour format with AM/PM (e.g. 6:00 PM).
- * Returns empty string if time is not specified.
  */
 export function formatTime12H(timeStr?: string): string {
   if (!timeStr || !timeStr.trim()) return '';
@@ -86,10 +100,19 @@ export function formatTime12H(timeStr?: string): string {
   let minutes = 0;
 
   if (timeStr.includes('T')) {
-    const d = parseAsIST(timeStr);
-    const istDate = new Date(d.getTime() + d.getTimezoneOffset() * 60000 + IST_OFFSET_MS);
-    hours = istDate.getHours();
-    minutes = istDate.getMinutes();
+    const d = new Date(timeStr);
+    if (isNaN(d.getTime())) return '';
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Kolkata',
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: false,
+    }).formatToParts(d);
+
+    parts.forEach((p) => {
+      if (p.type === 'hour') hours = parseInt(p.value, 10);
+      if (p.type === 'minute') minutes = parseInt(p.value, 10);
+    });
   } else {
     const parts = timeStr.split(':');
     if (parts.length < 2) return '';
@@ -115,10 +138,18 @@ export function formatDateCompact(dateStr: string): string {
   let monthIndex = 0;
 
   if (dateStr.includes('T')) {
-    const d = parseAsIST(dateStr);
-    const istDate = new Date(d.getTime() + d.getTimezoneOffset() * 60000 + IST_OFFSET_MS);
-    monthIndex = istDate.getMonth();
-    day = istDate.getDate();
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Kolkata',
+        day: 'numeric',
+        month: 'numeric',
+      }).formatToParts(d);
+      parts.forEach((p) => {
+        if (p.type === 'day') day = parseInt(p.value, 10);
+        if (p.type === 'month') monthIndex = parseInt(p.value, 10) - 1;
+      });
+    }
   } else {
     const parts = dateStr.split('-');
     if (parts.length >= 3) {
@@ -142,11 +173,20 @@ export function formatDateFriendly(dateStr: string): string {
   let day = 15;
 
   if (dateStr.includes('T')) {
-    const d = parseAsIST(dateStr);
-    const istDate = new Date(d.getTime() + d.getTimezoneOffset() * 60000 + IST_OFFSET_MS);
-    year = istDate.getFullYear();
-    month = istDate.getMonth() + 1;
-    day = istDate.getDate();
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Kolkata',
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+      }).formatToParts(d);
+      parts.forEach((p) => {
+        if (p.type === 'year') year = parseInt(p.value, 10);
+        if (p.type === 'month') month = parseInt(p.value, 10);
+        if (p.type === 'day') day = parseInt(p.value, 10);
+      });
+    }
   } else {
     const parts = dateStr.split('-');
     if (parts.length >= 3) {
@@ -163,10 +203,10 @@ export function formatDateFriendly(dateStr: string): string {
 
 /**
  * Formats event date/time for display on cards and timelines.
- * Displays "Today • 6:00 PM", "Tomorrow • 10:00 AM", or "18 Aug • 2:00 PM".
+ * Displays "Today • 6:00 PM", "Tomorrow • 10:00 AM", or "18/08/2026 • 2:00 PM".
  */
 export function formatEventDateTime(event: PlacementEvent): string {
-  const status = getEventTimingStatus(event.dateTime);
+  const status = getEventTimingStatus(event.dateTime, event.date);
   const timeFormatted = event.time ? formatTime12H(event.time) : '';
   const dateCompact = formatDateCompact(event.date || event.dateTime);
 
@@ -195,7 +235,7 @@ export function formatEventDateTime(event: PlacementEvent): string {
  * 10. Past events
  */
 export function getEventPriorityScore(event: PlacementEvent): number {
-  const status = getEventTimingStatus(event.dateTime);
+  const status = getEventTimingStatus(event.dateTime, event.date);
   const isRegistration = event.eventType === 'COMPANY_REGISTRATION' || event.eventType === 'PORTAL_REGISTRATION';
 
   if (status === 'TODAY' && isRegistration) return 1;
@@ -212,33 +252,78 @@ export function getEventPriorityScore(event: PlacementEvent): number {
 }
 
 /**
- * Filters and sorts events into upcoming list.
+ * Filters and sorts events into upcoming list based strictly on eventDateTime.
+ * NEVER uses createdAt or updatedAt.
  */
 export function getUpcomingEvents(events: PlacementEvent[]): PlacementEvent[] {
-  const nowMs = getNowIST().getTime();
+  const currentMs = Date.now();
+  const todayIST = getISTDateString(currentMs);
 
   return events
     .filter((evt) => {
-      const evtMs = parseAsIST(evt.dateTime).getTime();
-      return evtMs >= nowMs;
+      const evtMs = new Date(evt.dateTime).getTime();
+      const evtIST = evt.date || getISTDateString(evt.dateTime);
+      return evtMs >= currentMs || evtIST >= todayIST;
     })
     .sort((a, b) => {
       const prioA = getEventPriorityScore(a);
       const prioB = getEventPriorityScore(b);
       if (prioA !== prioB) return prioA - prioB;
-      return parseAsIST(a.dateTime).getTime() - parseAsIST(b.dateTime).getTime();
+      return new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime();
     });
 }
 
 /**
- * Checks if event is happening within 7 days from now (in IST).
+ * Checks if event falls within the current Monday → Sunday week in IST.
+ * NEVER uses createdAt or updatedAt.
  */
-export function isEventThisWeek(dateTimeStr: string): boolean {
-  const eventMs = parseAsIST(dateTimeStr).getTime();
-  const nowIST = getNowIST();
+export function isEventThisWeek(dateTimeStr?: string, dateStr?: string): boolean {
+  if (!dateTimeStr && !dateStr) return false;
 
-  const todayStart = getStartOfDayIST(nowIST);
-  const weekEnd = todayStart + 7 * 24 * 60 * 60 * 1000;
+  const refMs = Date.now();
+  const todayStr = getISTDateString(refMs);
+  const parts = todayStr.split('-').map((v) => parseInt(v, 10));
+  if (parts.length < 3) return false;
 
-  return eventMs >= todayStart && eventMs <= weekEnd;
+  const [year, month, day] = parts;
+  const currentISTDate = new Date(Date.UTC(year, month - 1, day));
+
+  // Determine weekday in IST (0 = Mon, ..., 6 = Sun)
+  const weekdayStr = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Kolkata',
+    weekday: 'short',
+  }).format(new Date(refMs));
+
+  const daysOfWeekMap: Record<string, number> = {
+    Mon: 0,
+    Tue: 1,
+    Wed: 2,
+    Thu: 3,
+    Fri: 4,
+    Sat: 5,
+    Sun: 6,
+  };
+  const dayIdx = daysOfWeekMap[weekdayStr] ?? 0;
+
+  // Monday 00:00:00 IST of current week
+  const mondayDate = new Date(currentISTDate);
+  mondayDate.setUTCDate(currentISTDate.getUTCDate() - dayIdx);
+  const monStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(mondayDate);
+
+  // Sunday 23:59:59 IST of current week
+  const sundayDate = new Date(mondayDate);
+  sundayDate.setUTCDate(mondayDate.getUTCDate() + 6);
+  const sunStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(sundayDate);
+
+  const startMs = new Date(`${monStr}T00:00:00+05:30`).getTime();
+  const endMs = new Date(`${sunStr}T23:59:59.999+05:30`).getTime();
+
+  const eventMs = dateTimeStr ? new Date(dateTimeStr).getTime() : 0;
+  const eventIST = dateStr || (dateTimeStr ? getISTDateString(dateTimeStr) : '');
+
+  if (eventIST && eventIST >= monStr && eventIST <= sunStr) {
+    return true;
+  }
+
+  return eventMs >= startMs && eventMs <= endMs;
 }

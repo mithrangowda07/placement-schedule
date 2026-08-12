@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
 import { Home } from './pages/Home';
+import { Companies } from './pages/Companies';
 import { CompanyDetails } from './pages/CompanyDetails';
 import { AdminLogin } from './pages/AdminLogin';
 import { AdminDashboard } from './pages/AdminDashboard';
@@ -19,6 +20,7 @@ export const App: React.FC = () => {
           <Routes>
             {/* PUBLIC STUDENT ROUTES */}
             <Route path="/" element={<Home />} />
+            <Route path="/companies" element={<Companies />} />
             <Route path="/company/:id" element={<CompanyDetails />} />
 
             {/* PUBLIC ADMIN LOGIN */}

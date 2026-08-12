@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { GraduationCap, ShieldCheck, LogOut, Menu, X, Home } from 'lucide-react';
+import { GraduationCap, ShieldCheck, LogOut, Menu, X, Home, Building2 } from 'lucide-react';
 import { isAuthenticated, logoutAdmin, getAdminUsername } from '../services/authService';
 
 export const Navbar: React.FC = () => {
@@ -58,6 +58,17 @@ export const Navbar: React.FC = () => {
               }`}
             >
               <span>Home</span>
+            </Link>
+
+            <Link
+              to="/companies"
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
+                location.pathname === '/companies'
+                  ? 'bg-slate-800 text-indigo-300 border border-slate-700'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+              }`}
+            >
+              <span>Companies</span>
             </Link>
 
             {isAuth ? (
@@ -123,6 +134,19 @@ export const Navbar: React.FC = () => {
           >
             <Home className="w-4 h-4 text-indigo-300" />
             <span>Home</span>
+          </Link>
+
+          <Link
+            to="/companies"
+            onClick={() => setIsMenuOpen(false)}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors ${
+              location.pathname === '/companies'
+                ? 'bg-indigo-600 text-white shadow-sm'
+                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+            }`}
+          >
+            <Building2 className="w-4 h-4 text-indigo-300" />
+            <span>Companies</span>
           </Link>
 
           {isAuth ? (

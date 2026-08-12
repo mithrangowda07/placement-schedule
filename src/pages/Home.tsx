@@ -82,8 +82,8 @@ export const Home: React.FC = () => {
     let thisWeekCount = 0;
 
     allEventsFlattened.forEach((evt) => {
-      const timingStatus = getEventTimingStatus(evt.dateTime);
-      const isThisWk = isEventThisWeek(evt.dateTime);
+      const timingStatus = getEventTimingStatus(evt.dateTime, evt.date);
+      const isThisWk = isEventThisWeek(evt.dateTime, evt.date);
 
       if (timingStatus === 'TODAY') todayCount++;
       if (timingStatus === 'TOMORROW') tomorrowCount++;
@@ -128,19 +128,32 @@ export const Home: React.FC = () => {
     };
   }, [allEventsFlattened]);
 
-  const displayedCompanies = useMemo(() => {
-    if (activeFilter === 'ALL') return filteredCompanies;
+  const upcomingCompanies = useMemo(() => {
+    return filteredCompanies.filter((comp) =>
+      comp.events.some((evt) => getEventTimingStatus(evt.dateTime, evt.date) !== 'PAST')
+    );
+  }, [filteredCompanies]);
 
-    return filteredCompanies.filter((comp) => {
-      return comp.events.some((evt) => {
-        const timingStatus = getEventTimingStatus(evt.dateTime);
-        if (activeFilter === 'TODAY') return timingStatus === 'TODAY';
-        if (activeFilter === 'TOMORROW') return timingStatus === 'TOMORROW';
-        if (activeFilter === 'THIS_WEEK') return isEventThisWeek(evt.dateTime);
-        return true;
+  const displayedCompanies = useMemo(() => {
+    let result = upcomingCompanies;
+    if (activeFilter !== 'ALL') {
+      result = upcomingCompanies.filter((comp) => {
+        return comp.events.some((evt) => {
+          const timingStatus = getEventTimingStatus(evt.dateTime, evt.date);
+          if (activeFilter === 'TODAY') return timingStatus === 'TODAY';
+          if (activeFilter === 'TOMORROW') return timingStatus === 'TOMORROW';
+          if (activeFilter === 'THIS_WEEK') return isEventThisWeek(evt.dateTime, evt.date);
+          return true;
+        });
       });
+    }
+
+    return [...result].sort((a, b) => {
+      const timeA = a.nextEvent ? parseAsIST(a.nextEvent.dateTime).getTime() : Number.MAX_SAFE_INTEGER;
+      const timeB = b.nextEvent ? parseAsIST(b.nextEvent.dateTime).getTime() : Number.MAX_SAFE_INTEGER;
+      return timeA - timeB;
     });
-  }, [filteredCompanies, activeFilter]);
+  }, [upcomingCompanies, activeFilter]);
 
   return (
     <div className="min-h-screen bg-slate-50 pb-16">
