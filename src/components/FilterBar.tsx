@@ -23,24 +23,24 @@ export const FilterBar: React.FC<FilterBarProps> = ({ activeFilter, onSelectFilt
   ];
 
   return (
-    <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none scroll-smooth">
+    <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 max-w-full overflow-x-auto pb-1 scrollbar-none scroll-smooth">
       {filters.map((f) => {
         const isActive = activeFilter === f.id;
         return (
           <button
             key={f.id}
             onClick={() => onSelectFilter(f.id)}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all cursor-pointer border ${
+            className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all cursor-pointer border min-h-[38px] ${
               isActive
                 ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm shadow-indigo-200'
-                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900'
+                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:text-slate-900'
             }`}
           >
             {f.icon}
             <span>{f.label}</span>
             <span
-              className={`ml-1 text-[11px] px-1.5 py-0.2 rounded-full font-bold ${
-                isActive ? 'bg-indigo-700 text-indigo-100' : 'bg-slate-100 text-slate-500'
+              className={`ml-0.5 text-[11px] px-1.5 py-0.5 rounded-full font-bold ${
+                isActive ? 'bg-indigo-700 text-indigo-100' : 'bg-slate-100 text-slate-600'
               }`}
             >
               {f.count}

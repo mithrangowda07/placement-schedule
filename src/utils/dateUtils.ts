@@ -104,6 +104,33 @@ export function formatTime12H(timeStr?: string): string {
   return `${displayHours}:${displayMinutes} ${ampm}`;
 }
 
+const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/**
+ * Formats YYYY-MM-DD or ISO string to compact date format (e.g. "18 Aug").
+ */
+export function formatDateCompact(dateStr: string): string {
+  if (!dateStr) return '';
+  let day = 1;
+  let monthIndex = 0;
+
+  if (dateStr.includes('T')) {
+    const d = parseAsIST(dateStr);
+    const istDate = new Date(d.getTime() + d.getTimezoneOffset() * 60000 + IST_OFFSET_MS);
+    monthIndex = istDate.getMonth();
+    day = istDate.getDate();
+  } else {
+    const parts = dateStr.split('-');
+    if (parts.length >= 3) {
+      monthIndex = (parseInt(parts[1], 10) || 1) - 1;
+      day = parseInt(parts[2], 10) || 1;
+    }
+  }
+
+  const monthName = MONTHS_SHORT[monthIndex] || '';
+  return `${day} ${monthName}`.trim();
+}
+
 /**
  * Formats YYYY-MM-DD or ISO string to Date/Month/Year format (e.g. "15/08/2026").
  */
@@ -136,12 +163,12 @@ export function formatDateFriendly(dateStr: string): string {
 
 /**
  * Formats event date/time for display on cards and timelines.
- * Uses DD/MM/YYYY date format and appends 12-hour time if present.
+ * Displays "Today • 6:00 PM", "Tomorrow • 10:00 AM", or "18 Aug • 2:00 PM".
  */
 export function formatEventDateTime(event: PlacementEvent): string {
   const status = getEventTimingStatus(event.dateTime);
   const timeFormatted = event.time ? formatTime12H(event.time) : '';
-  const dateFormatted = formatDateFriendly(event.date || event.dateTime);
+  const dateCompact = formatDateCompact(event.date || event.dateTime);
 
   if (status === 'TODAY') {
     return timeFormatted ? `Today • ${timeFormatted}` : 'Today';
@@ -151,7 +178,37 @@ export function formatEventDateTime(event: PlacementEvent): string {
     return timeFormatted ? `Tomorrow • ${timeFormatted}` : 'Tomorrow';
   }
 
-  return timeFormatted ? `${dateFormatted} • ${timeFormatted}` : dateFormatted;
+  return timeFormatted ? `${dateCompact} • ${timeFormatted}` : dateCompact;
+}
+
+/**
+ * Calculates priority score for sorting placement events based on urgency:
+ * 1. Registration closing today
+ * 2. Registration closing tomorrow
+ * 3. Assessment today
+ * 4. Interview today
+ * 5. Other events today
+ * 6. Assessment tomorrow
+ * 7. Interview tomorrow
+ * 8. Other events tomorrow
+ * 9. Upcoming events
+ * 10. Past events
+ */
+export function getEventPriorityScore(event: PlacementEvent): number {
+  const status = getEventTimingStatus(event.dateTime);
+  const isRegistration = event.eventType === 'COMPANY_REGISTRATION' || event.eventType === 'PORTAL_REGISTRATION';
+
+  if (status === 'TODAY' && isRegistration) return 1;
+  if (status === 'TOMORROW' && isRegistration) return 2;
+  if (status === 'TODAY' && event.eventType === 'ONLINE_ASSESSMENT') return 3;
+  if (status === 'TODAY' && event.eventType === 'INTERVIEW') return 4;
+  if (status === 'TODAY') return 5;
+  if (status === 'TOMORROW' && event.eventType === 'ONLINE_ASSESSMENT') return 6;
+  if (status === 'TOMORROW' && event.eventType === 'INTERVIEW') return 7;
+  if (status === 'TOMORROW') return 8;
+  if (status === 'FUTURE') return 9;
+
+  return 10;
 }
 
 /**
@@ -165,7 +222,12 @@ export function getUpcomingEvents(events: PlacementEvent[]): PlacementEvent[] {
       const evtMs = parseAsIST(evt.dateTime).getTime();
       return evtMs >= nowMs;
     })
-    .sort((a, b) => parseAsIST(a.dateTime).getTime() - parseAsIST(b.dateTime).getTime());
+    .sort((a, b) => {
+      const prioA = getEventPriorityScore(a);
+      const prioB = getEventPriorityScore(b);
+      if (prioA !== prioB) return prioA - prioB;
+      return parseAsIST(a.dateTime).getTime() - parseAsIST(b.dateTime).getTime();
+    });
 }
 
 /**

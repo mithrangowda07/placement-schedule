@@ -161,12 +161,12 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData, onSubmit,
       )}
 
       {/* COMPANY DETAILS CARD */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
-        <h2 className="text-xl font-bold text-slate-900 border-b border-slate-100 pb-4">
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-slate-200/80 shadow-xs space-y-5 sm:space-y-6">
+        <h2 className="text-lg sm:text-xl font-bold text-slate-900 border-b border-slate-100 pb-3">
           1. Company Details
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
           <div>
             <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
               Company Name *
@@ -264,40 +264,40 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData, onSubmit,
       </div>
 
       {/* EVENTS BUILDER CARD */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-slate-200/80 shadow-xs space-y-5 sm:space-y-6">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">2. Placement Activities & Events</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900">2. Placement Activities & Events</h2>
             <p className="text-xs text-slate-500">Schedule registration deadlines, online tests, PPT, and interviews</p>
           </div>
 
           <button
             type="button"
             onClick={handleAddEvent}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl text-xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl text-xs transition-colors cursor-pointer min-h-[38px]"
           >
             <Plus className="w-4 h-4" />
-            <span>+ ADD EVENT</span>
+            <span>ADD EVENT</span>
           </button>
         </div>
 
         {events.length === 0 ? (
-          <div className="bg-slate-50 rounded-2xl p-8 text-center border border-dashed border-slate-200 space-y-3">
+          <div className="bg-slate-50 rounded-2xl p-6 sm:p-8 text-center border border-dashed border-slate-200 space-y-3">
             <p className="text-sm font-semibold text-slate-700">No events added yet.</p>
             <button
               type="button"
               onClick={handleAddEvent}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-500 transition-colors"
+              className="px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-500 transition-colors min-h-[42px]"
             >
               + ADD FIRST EVENT
             </button>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-5 sm:space-y-6">
             {events.map((evt, index) => (
               <div
                 key={index}
-                className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-5 space-y-4 relative"
+                className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-4 relative"
               >
                 <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
                   <span className="text-xs font-extrabold uppercase tracking-wider text-indigo-600">
@@ -306,7 +306,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData, onSubmit,
                   <button
                     type="button"
                     onClick={() => handleRemoveEvent(index)}
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-red-600 hover:text-red-700 p-1 rounded-md transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-red-600 hover:text-red-700 p-1.5 rounded-md transition-colors cursor-pointer min-h-[36px]"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     <span>REMOVE</span>
@@ -321,7 +321,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData, onSubmit,
                     <select
                       value={evt.eventType}
                       onChange={(e) => handleEventChange(index, 'eventType', e.target.value)}
-                      className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[42px]"
                     >
                       <option value="COMPANY_REGISTRATION">Company Registration</option>
                       <option value="PORTAL_REGISTRATION">Company Portal Registration</option>
@@ -342,7 +342,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData, onSubmit,
                         value={evt.title}
                         onChange={(e) => handleEventChange(index, 'title', e.target.value)}
                         placeholder="e.g. Pre Placement Talk"
-                        className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>
                   )}
@@ -356,7 +356,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData, onSubmit,
                       required
                       value={evt.date}
                       onChange={(e) => handleEventChange(index, 'date', e.target.value)}
-                      className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
 
@@ -368,7 +368,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData, onSubmit,
                       type="time"
                       value={evt.time}
                       onChange={(e) => handleEventChange(index, 'time', e.target.value)}
-                      className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
 
@@ -381,7 +381,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData, onSubmit,
                       value={evt.url}
                       onChange={(e) => handleEventChange(index, 'url', e.target.value)}
                       placeholder="https://example.com/test-link"
-                      className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
 
@@ -394,7 +394,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData, onSubmit,
                       value={evt.description}
                       onChange={(e) => handleEventChange(index, 'description', e.target.value)}
                       placeholder="e.g. Bring official college ID card & updated resume."
-                      className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                 </div>
@@ -405,11 +405,11 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData, onSubmit,
       </div>
 
       {/* FORM ACTION BUTTONS */}
-      <div className="flex items-center justify-end gap-3 pt-4">
+      <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 pt-2">
         <button
           type="button"
           onClick={onCancel}
-          className="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs sm:text-sm transition-colors cursor-pointer"
+          className="w-full sm:w-auto px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs sm:text-sm transition-colors cursor-pointer min-h-[44px]"
         >
           CANCEL
         </button>
@@ -417,7 +417,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData, onSubmit,
         <button
           type="submit"
           disabled={saving}
-          className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-bold rounded-xl text-xs sm:text-sm transition-all shadow-md shadow-indigo-600/30 cursor-pointer disabled:opacity-50 flex items-center gap-2"
+          className="w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-bold rounded-xl text-xs sm:text-sm transition-all shadow-md shadow-indigo-600/30 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2 min-h-[44px]"
         >
           <Check className="w-4 h-4" />
           <span>{saving ? 'SAVING COMPANY...' : isEdit ? 'UPDATE COMPANY' : 'SAVE COMPANY'}</span>

@@ -66,23 +66,23 @@ export const CompanyDetails: React.FC = () => {
         <div className="max-w-4xl mx-auto">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-indigo-300 hover:text-white transition-colors"
+            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-indigo-300 hover:text-white transition-colors py-1"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Upcoming Companies</span>
+            <span>Back to Home</span>
           </Link>
         </div>
       </div>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6 sm:space-y-8">
+        <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-6">
-            <div className="flex items-center gap-4">
+            <div className="flex items-start sm:items-center gap-3.5 sm:gap-4">
               {company.logoUrl ? (
                 <img
                   src={company.logoUrl}
                   alt={`${company.companyName} logo`}
-                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-contain bg-slate-50 p-2 border border-slate-200 shadow-2xs"
+                  className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl object-contain bg-slate-50 p-2 border border-slate-200 shadow-2xs shrink-0"
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = 'none';
                     (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
@@ -90,7 +90,7 @@ export const CompanyDetails: React.FC = () => {
                 />
               ) : null}
               <div
-                className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-800 text-white font-bold flex items-center justify-center text-2xl shadow-inner ${
+                className={`w-14 h-14 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-800 text-white font-bold flex items-center justify-center text-xl sm:text-2xl shadow-inner shrink-0 ${
                   company.logoUrl ? 'hidden' : ''
                 }`}
               >
@@ -98,20 +98,20 @@ export const CompanyDetails: React.FC = () => {
               </div>
 
               <div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">{company.companyName}</h1>
-                <div className="flex flex-wrap items-center gap-3 mt-2 text-xs sm:text-sm">
+                <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 leading-tight">{company.companyName}</h1>
+                <div className="flex flex-wrap items-center gap-2 mt-2 text-xs sm:text-sm">
                   {company.roleOffered && (
-                    <span className="flex items-center gap-1.5 font-semibold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200/60">
-                      <Briefcase className="w-4 h-4 text-indigo-600" />
+                    <span className="flex items-center gap-1 font-semibold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200/60">
+                      <Briefcase className="w-3.5 h-3.5 text-indigo-600" />
                       Role: {company.roleOffered}
                     </span>
                   )}
-                  <span className="flex items-center gap-1.5 font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/60">
-                    <Banknote className="w-4 h-4 text-emerald-600" />
+                  <span className="flex items-center gap-1 font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/60">
+                    <Banknote className="w-3.5 h-3.5 text-emerald-600" />
                     Package: {company.package}
                   </span>
-                  <span className="flex items-center gap-1.5 font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg">
-                    <MapPin className="w-4 h-4 text-slate-500" />
+                  <span className="flex items-center gap-1 font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg">
+                    <MapPin className="w-3.5 h-3.5 text-slate-500" />
                     Location: {company.location}
                   </span>
                 </div>
@@ -123,7 +123,7 @@ export const CompanyDetails: React.FC = () => {
                 href={company.registrationUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs sm:text-sm transition-all shadow-sm shadow-indigo-200 cursor-pointer self-start sm:self-center"
+                className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-3 min-h-[44px] bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs sm:text-sm transition-all shadow-sm shadow-indigo-200 cursor-pointer self-stretch sm:self-center"
               >
                 <span>REGISTER NOW</span>
                 <ExternalLink className="w-4 h-4" />

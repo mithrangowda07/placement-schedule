@@ -8,7 +8,7 @@ import type { FilterOption } from '../components/FilterBar';
 import { CompanyCard } from '../components/CompanyCard';
 import { EventCard } from '../components/EventCard';
 import { CompanySkeletonGrid } from '../components/LoadingSkeleton';
-import { getEventTimingStatus, isEventThisWeek, parseAsIST } from '../utils/dateUtils';
+import { getEventTimingStatus, isEventThisWeek, parseAsIST, getEventPriorityScore } from '../utils/dateUtils';
 import type { PlacementEvent } from '../types/event';
 
 interface EventWithCompanyMeta extends PlacementEvent {
@@ -51,7 +51,8 @@ export const Home: React.FC = () => {
         c.companyName.toLowerCase().includes(q) ||
         c.location.toLowerCase().includes(q) ||
         c.package.toLowerCase().includes(q) ||
-        c.description.toLowerCase().includes(q)
+        c.description.toLowerCase().includes(q) ||
+        (c.roleOffered && c.roleOffered.toLowerCase().includes(q))
     );
   }, [companies, searchQuery]);
 
@@ -98,8 +99,20 @@ export const Home: React.FC = () => {
       }
     });
 
-    upcoming.sort((a, b) => parseAsIST(a.dateTime).getTime() - parseAsIST(b.dateTime).getTime());
-    important.sort((a, b) => parseAsIST(a.dateTime).getTime() - parseAsIST(b.dateTime).getTime());
+    upcoming.sort((a, b) => {
+      const prioA = getEventPriorityScore(a);
+      const prioB = getEventPriorityScore(b);
+      if (prioA !== prioB) return prioA - prioB;
+      return parseAsIST(a.dateTime).getTime() - parseAsIST(b.dateTime).getTime();
+    });
+
+    important.sort((a, b) => {
+      const prioA = getEventPriorityScore(a);
+      const prioB = getEventPriorityScore(b);
+      if (prioA !== prioB) return prioA - prioB;
+      return parseAsIST(a.dateTime).getTime() - parseAsIST(b.dateTime).getTime();
+    });
+
     past.sort((a, b) => parseAsIST(b.dateTime).getTime() - parseAsIST(a.dateTime).getTime());
 
     return {
@@ -131,34 +144,35 @@ export const Home: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-16">
-      <section className="bg-slate-900 text-white pt-8 pb-12 px-4 sm:px-6 lg:px-8 border-b border-slate-800 relative overflow-hidden">
+      {/* MOBILE-FIRST HERO HEADER */}
+      <section className="bg-slate-900 text-white pt-6 pb-8 sm:pt-10 sm:pb-12 px-4 sm:px-6 lg:px-8 border-b border-slate-800 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-900/40 via-slate-900 to-slate-950 pointer-events-none" />
         
-        <div className="max-w-6xl mx-auto relative z-10">
-          <div className="max-w-3xl space-y-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-              <Sparkles className="w-3.5 h-3.5" />
+        <div className="max-w-6xl mx-auto relative z-10 space-y-4">
+          <div className="space-y-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+              <Sparkles className="w-3 h-3" />
               RVCE Placement Season 2026
             </span>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
               RVCE Placement Hub
             </h1>
-            <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-              Stay updated with placement registrations, assessments, interviews and important recruitment events in real-time.
+            <p className="text-indigo-200/90 text-sm sm:text-base font-medium">
+              Never miss a placement deadline.
             </p>
           </div>
 
-          <div className="mt-8">
+          <div className="pt-2">
             <SearchBar value={searchQuery} onChange={setSearchQuery} />
           </div>
         </div>
       </section>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-10">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-8 sm:space-y-10">
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center space-y-3 animate-fade-in">
-            <AlertCircle className="w-10 h-10 text-red-500 mx-auto" />
-            <h3 className="text-base font-bold text-red-900">{error}</h3>
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-5 text-center space-y-3 animate-fade-in">
+            <AlertCircle className="w-8 h-8 text-red-500 mx-auto" />
+            <h3 className="text-sm font-bold text-red-900">{error}</h3>
             <button
               onClick={fetchPlacementData}
               className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
@@ -173,19 +187,22 @@ export const Home: React.FC = () => {
 
         {!loading && !error && (
           <>
+            {/* IMPORTANT SECTION */}
             {importantEvents.length > 0 && (
-              <section className="bg-gradient-to-r from-red-500/10 via-amber-500/10 to-indigo-500/10 p-5 sm:p-6 rounded-3xl border border-red-200/80 shadow-xs relative overflow-hidden animate-fade-in">
-                <div className="flex items-center gap-2.5 mb-4">
-                  <div className="w-8 h-8 rounded-xl bg-red-500 text-white flex items-center justify-center font-bold shadow-sm">
-                    <Flame className="w-5 h-5 animate-pulse" />
+              <section className="bg-gradient-to-r from-red-500/10 via-amber-500/10 to-indigo-500/10 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-red-200/80 shadow-xs relative overflow-hidden animate-fade-in space-y-3">
+                <div className="flex items-center gap-2.5 border-b border-red-200/50 pb-3">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-red-500 text-white flex items-center justify-center font-bold shadow-sm shrink-0">
+                    <Flame className="w-4 h-4 sm:w-5 sm:h-5 animate-pulse" />
                   </div>
                   <div>
-                    <h2 className="text-lg sm:text-xl font-bold text-slate-900">Important Deadlines</h2>
-                    <p className="text-xs text-slate-600">Urgent recruitment activities happening Today & Tomorrow</p>
+                    <h2 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight uppercase">
+                      IMPORTANT
+                    </h2>
+                    <p className="text-xs text-slate-600 font-medium">Urgent placement deadlines today & tomorrow</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                   {importantEvents.map((evt) => (
                     <EventCard key={evt.eventId} event={evt} companyName={evt.companyName} showCompanyHeader={true} />
                   ))}
@@ -193,54 +210,60 @@ export const Home: React.FC = () => {
               </section>
             )}
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 border-b border-slate-200/80 pb-4">
-              <div>
-                <h2 className="text-xl font-bold text-slate-900">Upcoming Placement Drives</h2>
-                <p className="text-xs text-slate-500">Sorted chronologically by event date & time</p>
+            {/* UPCOMING SECTION */}
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
+                <div>
+                  <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight uppercase">
+                    UPCOMING
+                  </h2>
+                  <p className="text-xs text-slate-500">Placement drives & activities</p>
+                </div>
+
+                <FilterBar
+                  activeFilter={activeFilter}
+                  onSelectFilter={setActiveFilter}
+                  counts={filterCounts}
+                />
               </div>
 
-              <FilterBar
-                activeFilter={activeFilter}
-                onSelectFilter={setActiveFilter}
-                counts={filterCounts}
-              />
+              {displayedCompanies.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                  {displayedCompanies.map((comp) => (
+                    <CompanyCard key={comp.companyId} company={comp} />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white border border-slate-200 rounded-2xl p-8 sm:p-12 text-center max-w-md mx-auto space-y-3 my-6">
+                  <Building2 className="w-10 h-10 text-slate-300 mx-auto" />
+                  <h3 className="text-sm sm:text-base font-bold text-slate-800">
+                    {searchQuery
+                      ? `No companies found matching "${searchQuery}"`
+                      : 'No upcoming placement activities.'}
+                  </h3>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    {searchQuery
+                      ? 'Try adjusting your search terms or filter options.'
+                      : 'Placement information will appear here when companies are added.'}
+                  </p>
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 underline cursor-pointer"
+                    >
+                      Clear search filter
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
 
-            {displayedCompanies.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {displayedCompanies.map((comp) => (
-                  <CompanyCard key={comp.companyId} company={comp} />
-                ))}
-              </div>
-            ) : (
-              <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center max-w-md mx-auto space-y-3 my-8">
-                <Building2 className="w-12 h-12 text-slate-300 mx-auto" />
-                <h3 className="text-base font-bold text-slate-800">
-                  {searchQuery
-                    ? `No companies found matching "${searchQuery}"`
-                    : 'No upcoming placement activities.'}
-                </h3>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  {searchQuery
-                    ? 'Try adjusting your search terms or filter options.'
-                    : 'Placement information will appear here when companies are added.'}
-                </p>
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 underline cursor-pointer"
-                  >
-                    Clear search filter
-                  </button>
-                )}
-              </div>
-            )}
-
+            {/* COMPLETED / PAST EVENTS */}
             {pastEvents.length > 0 && (
-              <div className="pt-8 border-t border-slate-200">
+              <div className="pt-6 border-t border-slate-200">
                 <button
                   onClick={() => setShowPastEvents(!showPastEvents)}
-                  className="flex items-center justify-between w-full p-4 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-700 text-sm font-semibold transition-colors cursor-pointer"
+                  className="flex items-center justify-between w-full p-4 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-700 text-xs sm:text-sm font-semibold transition-colors cursor-pointer min-h-[44px]"
                 >
                   <span className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-slate-400" />
@@ -250,7 +273,7 @@ export const Home: React.FC = () => {
                 </button>
 
                 {showPastEvents && (
-                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3.5 animate-fade-in">
                     {pastEvents.map((evt) => (
                       <EventCard key={evt.eventId} event={evt} companyName={evt.companyName} showCompanyHeader={true} />
                     ))}

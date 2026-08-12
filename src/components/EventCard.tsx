@@ -2,7 +2,7 @@ import React from 'react';
 import { Calendar, Clock, ExternalLink, Flame, CheckCircle2 } from 'lucide-react';
 import type { PlacementEvent } from '../types/event';
 import { EVENT_TYPE_LABELS, EVENT_TYPE_BUTTON_TEXT } from '../types/event';
-import { getEventTimingStatus, formatDateFriendly, formatTime12H } from '../utils/dateUtils';
+import { getEventTimingStatus, formatDateFriendly, formatTime12H, formatEventDateTime } from '../utils/dateUtils';
 
 interface EventCardProps {
   event: PlacementEvent;
@@ -72,16 +72,10 @@ export const EventCard: React.FC<EventCardProps> = ({ event, companyName, showCo
           </div>
 
           <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600 font-medium pt-1">
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1 font-semibold text-indigo-700">
               <Calendar className="w-4 h-4 text-indigo-500" />
-              {formatDateFriendly(event.date)}
+              {formatEventDateTime(event)}
             </span>
-            {event.time && formatTime12H(event.time) ? (
-              <span className="flex items-center gap-1">
-                <Clock className="w-4 h-4 text-indigo-500" />
-                {formatTime12H(event.time)}
-              </span>
-            ) : null}
           </div>
 
           {event.description && (
@@ -92,12 +86,12 @@ export const EventCard: React.FC<EventCardProps> = ({ event, companyName, showCo
         </div>
 
         {event.url ? (
-          <div className="sm:self-center pt-2 sm:pt-0">
+          <div className="sm:self-center pt-2 sm:pt-0 w-full sm:w-auto">
             <a
               href={event.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-1.5 w-full sm:w-auto px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm shadow-indigo-200 cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 w-full sm:w-auto px-4 py-2.5 min-h-[42px] bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm shadow-indigo-200 cursor-pointer"
             >
               <span>{buttonText}</span>
               <ExternalLink className="w-3.5 h-3.5" />
