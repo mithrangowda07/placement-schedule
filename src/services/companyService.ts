@@ -1,4 +1,5 @@
 import type { Company, CompanyWithEvents } from '../types/company';
+import { normalizeCompanyRoles } from '../types/company';
 import type { PlacementEvent } from '../types/event';
 import { parseAsIST, getEventTimingStatus } from '../utils/dateUtils';
 
@@ -23,8 +24,6 @@ export async function getCompaniesWithEvents(): Promise<CompanyWithEvents[]> {
  * Helper to combine companies and events.
  */
 function attachEventsToCompanies(companies: Company[], events: PlacementEvent[]): CompanyWithEvents[] {
-  const nowMs = Date.now();
-
   return companies.map((comp) => {
     const compId = comp.companyId || comp._id;
 
@@ -34,9 +33,11 @@ function attachEventsToCompanies(companies: Company[], events: PlacementEvent[])
 
     const upcomingEvents = compEvents.filter((e) => getEventTimingStatus(e.dateTime, e.date) !== 'PAST');
     const nextEvent = upcomingEvents.length > 0 ? upcomingEvents[0] : undefined;
+    const roles = normalizeCompanyRoles(comp);
 
     return {
       ...comp,
+      roles,
       companyId: compId || comp.companyName.toLowerCase().replace(/\s+/g, '-'),
       events: compEvents,
       nextEvent,
@@ -65,9 +66,11 @@ export async function getCompanyById(id: string): Promise<CompanyWithEvents | nu
     );
 
     const upcomingEvents = compEvents.filter((e) => getEventTimingStatus(e.dateTime, e.date) !== 'PAST');
+    const roles = normalizeCompanyRoles(comp);
 
     return {
       ...comp,
+      roles,
       companyId: comp.companyId || comp._id || id,
       events: compEvents,
       nextEvent: upcomingEvents[0],

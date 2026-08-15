@@ -50,9 +50,10 @@ export const Home: React.FC = () => {
       (c) =>
         c.companyName.toLowerCase().includes(q) ||
         c.location.toLowerCase().includes(q) ||
-        c.package.toLowerCase().includes(q) ||
         c.description.toLowerCase().includes(q) ||
-        (c.roleOffered && c.roleOffered.toLowerCase().includes(q))
+        (c.package && c.package.toLowerCase().includes(q)) ||
+        (c.roleOffered && c.roleOffered.toLowerCase().includes(q)) ||
+        (c.roles && c.roles.some((r) => r.roleName.toLowerCase().includes(q) || r.ctc.toLowerCase().includes(q)))
     );
   }, [companies, searchQuery]);
 
@@ -63,7 +64,7 @@ export const Home: React.FC = () => {
         events.push({
           ...evt,
           companyName: comp.companyName,
-          companyPackage: comp.package,
+          companyPackage: comp.roles && comp.roles.length > 0 ? comp.roles[0].ctc : comp.package || 'N/A',
           companyLocation: comp.location,
           companyLogoUrl: comp.logoUrl,
         });
@@ -135,9 +136,12 @@ export const Home: React.FC = () => {
   }, [filteredCompanies]);
 
   const displayedCompanies = useMemo(() => {
-    let result = upcomingCompanies;
+    // When user is searching, include all matching companies (both upcoming and past)
+    const baseList = searchQuery.trim() ? filteredCompanies : upcomingCompanies;
+
+    let result = baseList;
     if (activeFilter !== 'ALL') {
-      result = upcomingCompanies.filter((comp) => {
+      result = baseList.filter((comp) => {
         return comp.events.some((evt) => {
           const timingStatus = getEventTimingStatus(evt.dateTime, evt.date);
           if (activeFilter === 'TODAY') return timingStatus === 'TODAY';
@@ -149,11 +153,17 @@ export const Home: React.FC = () => {
     }
 
     return [...result].sort((a, b) => {
+      const isPastA = !a.nextEvent;
+      const isPastB = !b.nextEvent;
+
+      if (!isPastA && isPastB) return -1;
+      if (isPastA && !isPastB) return 1;
+
       const timeA = a.nextEvent ? parseAsIST(a.nextEvent.dateTime).getTime() : Number.MAX_SAFE_INTEGER;
       const timeB = b.nextEvent ? parseAsIST(b.nextEvent.dateTime).getTime() : Number.MAX_SAFE_INTEGER;
       return timeA - timeB;
     });
-  }, [upcomingCompanies, activeFilter]);
+  }, [searchQuery, filteredCompanies, upcomingCompanies, activeFilter]);
 
   return (
     <div className="min-h-screen bg-slate-50 pb-16">
@@ -228,9 +238,13 @@ export const Home: React.FC = () => {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
                 <div>
                   <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight uppercase">
-                    UPCOMING
+                    {searchQuery.trim() ? `SEARCH RESULTS (${displayedCompanies.length})` : 'UPCOMING'}
                   </h2>
-                  <p className="text-xs text-slate-500">Placement drives & activities</p>
+                  <p className="text-xs text-slate-500">
+                    {searchQuery.trim()
+                      ? `Showing placement drives matching "${searchQuery}" (upcoming & past)`
+                      : 'Placement drives & activities'}
+                  </p>
                 </div>
 
                 <FilterBar

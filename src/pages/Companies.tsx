@@ -64,10 +64,23 @@ export const Companies: React.FC = () => {
         const q = searchQuery.toLowerCase().trim();
         const matchesName = c.companyName.toLowerCase().includes(q);
         const matchesLoc = c.location.toLowerCase().includes(q);
-        const matchesPkg = c.package.toLowerCase().includes(q);
-        const matchesRole = c.roleOffered ? c.roleOffered.toLowerCase().includes(q) : false;
         const matchesDesc = c.description.toLowerCase().includes(q);
-        if (!matchesName && !matchesLoc && !matchesPkg && !matchesRole && !matchesDesc) {
+        const matchesLegacyPkg = c.package ? c.package.toLowerCase().includes(q) : false;
+        const matchesLegacyRole = c.roleOffered ? c.roleOffered.toLowerCase().includes(q) : false;
+        const matchesRoles = c.roles
+          ? c.roles.some(
+              (r) => r.roleName.toLowerCase().includes(q) || r.ctc.toLowerCase().includes(q)
+            )
+          : false;
+
+        if (
+          !matchesName &&
+          !matchesLoc &&
+          !matchesDesc &&
+          !matchesLegacyPkg &&
+          !matchesLegacyRole &&
+          !matchesRoles
+        ) {
           return false;
         }
       }
@@ -251,21 +264,44 @@ export const Companies: React.FC = () => {
                           <h3 className="font-bold text-slate-900 text-base sm:text-lg group-hover:text-indigo-600 transition-colors truncate">
                             {comp.companyName}
                           </h3>
-                          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 mt-0.5">
-                            {comp.roleOffered && (
-                              <span className="inline-flex items-center gap-1 font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">
-                                <Briefcase className="w-3 h-3 text-indigo-500" />
-                                {comp.roleOffered}
-                              </span>
+                          <div className="flex items-center gap-1 text-xs text-slate-500 font-medium mt-0.5">
+                            <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <span>{comp.location}</span>
+                          </div>
+
+                          <div className="mt-2 space-y-1">
+                            {comp.roles && comp.roles.length > 0 ? (
+                              <>
+                                {comp.roles.slice(0, 2).map((r, idx) => (
+                                  <div key={idx} className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2 text-xs">
+                                    <span className="font-semibold text-slate-800 flex items-center gap-1 truncate">
+                                      <Briefcase className="w-3 h-3 text-indigo-500 shrink-0" />
+                                      <span className="truncate">{r.roleName}</span>
+                                    </span>
+                                    <span className="hidden sm:inline text-slate-300">—</span>
+                                    <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100/80 w-max text-[11px]">
+                                      {r.ctc}
+                                    </span>
+                                  </div>
+                                ))}
+                                {comp.roles.length > 2 && (
+                                  <span className="inline-block text-[11px] font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md mt-0.5">
+                                    + {comp.roles.length - 2} more role{comp.roles.length - 2 > 1 ? 's' : ''}
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2 text-xs">
+                                <span className="font-semibold text-slate-800 flex items-center gap-1 truncate">
+                                  <Briefcase className="w-3 h-3 text-indigo-500 shrink-0" />
+                                  <span className="truncate">{comp.roleOffered || 'Software Engineer'}</span>
+                                </span>
+                                <span className="hidden sm:inline text-slate-300">—</span>
+                                <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100/80 w-max text-[11px]">
+                                  {comp.package || 'N/A'}
+                                </span>
+                              </div>
                             )}
-                            <span className="flex items-center gap-1 font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
-                              <Banknote className="w-3.5 h-3.5 text-emerald-600" />
-                              {comp.package}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                              {comp.location}
-                            </span>
                           </div>
                         </div>
                       </div>

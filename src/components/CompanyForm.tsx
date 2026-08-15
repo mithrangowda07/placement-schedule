@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, AlertCircle, Check } from 'lucide-react';
-import type { Company, CompanyWithEvents } from '../types/company';
+import type { Company, CompanyRole, CompanyWithEvents } from '../types/company';
 import type { PlacementEvent, EventType } from '../types/event';
 import { EVENT_TYPE_LABELS } from '../types/event';
 import { buildISTDateTime } from '../utils/dateUtils';
@@ -27,8 +27,18 @@ interface CompanyFormProps {
 
 export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData, onSubmit, onCancel, isEdit = false }) => {
   const [companyName, setCompanyName] = useState(initialData?.companyName || '');
-  const [roleOffered, setRoleOffered] = useState(initialData?.roleOffered || '');
-  const [pkg, setPkg] = useState(initialData?.package || '');
+
+  const getInitialRoles = (): CompanyRole[] => {
+    if (initialData?.roles && initialData.roles.length > 0) {
+      return initialData.roles.map((r) => ({ roleName: r.roleName, ctc: r.ctc }));
+    }
+    if (initialData?.roleOffered || initialData?.package) {
+      return [{ roleName: initialData.roleOffered || '', ctc: initialData.package || '' }];
+    }
+    return [{ roleName: '', ctc: '' }];
+  };
+
+  const [roles, setRoles] = useState<CompanyRole[]>(getInitialRoles);
   const [location, setLocation] = useState(initialData?.location || '');
   const [logoUrl, setLogoUrl] = useState(initialData?.logoUrl || '');
   const [description, setDescription] = useState(initialData?.description || '');
@@ -48,6 +58,24 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData, onSubmit,
 
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  const handleAddRole = () => {
+    setRoles([...roles, { roleName: '', ctc: '' }]);
+  };
+
+  const handleRemoveRole = (index: number) => {
+    if (roles.length <= 1) {
+      setError('At least one role is required.');
+      return;
+    }
+    setRoles(roles.filter((_, idx) => idx !== index));
+  };
+
+  const handleRoleChange = (index: number, field: keyof CompanyRole, value: string) => {
+    const updated = [...roles];
+    updated[index] = { ...updated[index], [field]: value };
+    setRoles(updated);
+  };
 
   const handleAddEvent = () => {
     const defaultDate = new Date().toISOString().split('T')[0];
@@ -90,10 +118,24 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData, onSubmit,
       setError('Company Name is required.');
       return;
     }
-    if (!pkg.trim()) {
-      setError('Package amount is required.');
+
+    if (roles.length === 0) {
+      setError('At least one role is required.');
       return;
     }
+
+    for (let i = 0; i < roles.length; i++) {
+      const r = roles[i];
+      if (!r.roleName.trim()) {
+        setError(`Role name is required for Role #${i + 1}.`);
+        return;
+      }
+      if (!r.ctc.trim()) {
+        setError(`CTC is required for Role #${i + 1}.`);
+        return;
+      }
+    }
+
     if (!location.trim()) {
       setError('Location is required.');
       return;
@@ -130,10 +172,16 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData, onSubmit,
         }
       );
 
+      const parsedRoles = roles.map((r) => ({
+        roleName: r.roleName.trim(),
+        ctc: r.ctc.trim(),
+      }));
+
       const companyPayload = {
         companyName: companyName.trim(),
-        roleOffered: roleOffered.trim() || undefined,
-        package: pkg.trim(),
+        roles: parsedRoles,
+        roleOffered: parsedRoles[0]?.roleName,
+        package: parsedRoles[0]?.ctc,
         location: location.trim(),
         logoUrl: logoUrl.trim() || undefined,
         description: description.trim(),
@@ -183,33 +231,6 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData, onSubmit,
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-              Package *
-            </label>
-            <input
-              type="text"
-              required
-              value={pkg}
-              onChange={(e) => setPkg(e.target.value)}
-              placeholder="e.g. 15 LPA"
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-              Role Offered (Optional)
-            </label>
-            <input
-              type="text"
-              value={roleOffered}
-              onChange={(e) => setRoleOffered(e.target.value)}
-              placeholder="e.g. Software Development Engineer (SDE-1)"
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
               Location *
             </label>
             <input
@@ -234,19 +255,19 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData, onSubmit,
               className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
             />
           </div>
-        </div>
 
-        <div>
-          <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-            Registration URL (Optional)
-          </label>
-          <input
-            type="url"
-            value={registrationUrl}
-            onChange={(e) => setRegistrationUrl(e.target.value)}
-            placeholder="https://forms.gle/registration-link"
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
-          />
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+              Registration URL (Optional)
+            </label>
+            <input
+              type="url"
+              value={registrationUrl}
+              onChange={(e) => setRegistrationUrl(e.target.value)}
+              placeholder="https://forms.gle/registration-link"
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+            />
+          </div>
         </div>
 
         <div>
@@ -263,11 +284,85 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData, onSubmit,
         </div>
       </div>
 
+      {/* ROLES & CTC CARD */}
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-slate-200/80 shadow-xs space-y-5 sm:space-y-6">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900">2. Job Roles & CTC / Packages</h2>
+            <p className="text-xs text-slate-500">Add job roles offered by this company and their respective compensation</p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleAddRole}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl text-xs transition-colors cursor-pointer min-h-[38px]"
+          >
+            <Plus className="w-4 h-4" />
+            <span>ADD ROLE</span>
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {roles.map((r, index) => (
+            <div
+              key={index}
+              className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-4 relative"
+            >
+              <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
+                <span className="text-xs font-extrabold uppercase tracking-wider text-indigo-600">
+                  Role #{index + 1}
+                </span>
+                {roles.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveRole(index)}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-red-600 hover:text-red-700 p-1.5 rounded-md transition-colors cursor-pointer min-h-[36px]"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>REMOVE ROLE</span>
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Role Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={r.roleName}
+                    onChange={(e) => handleRoleChange(index, 'roleName', e.target.value)}
+                    placeholder="e.g. Software Engineer"
+                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                    CTC / Package *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={r.ctc}
+                    onChange={(e) => handleRoleChange(index, 'ctc', e.target.value)}
+                    placeholder="e.g. 33–35 LPA"
+                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* EVENTS BUILDER CARD */}
       <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-slate-200/80 shadow-xs space-y-5 sm:space-y-6">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
-            <h2 className="text-lg sm:text-xl font-bold text-slate-900">2. Placement Activities & Events</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900">3. Placement Activities & Events</h2>
             <p className="text-xs text-slate-500">Schedule registration deadlines, online tests, PPT, and interviews</p>
           </div>
 

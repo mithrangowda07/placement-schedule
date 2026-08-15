@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Banknote, Calendar, ArrowRight, ExternalLink, Flame, Clock, Briefcase } from 'lucide-react';
+import { MapPin, Banknote, Calendar, ArrowRight, ExternalLink, Flame, Clock, Briefcase, CheckCircle2 } from 'lucide-react';
 import type { CompanyWithEvents } from '../types/company';
 import { EVENT_TYPE_BUTTON_TEXT, EVENT_TYPE_LABELS } from '../types/event';
-import { formatEventDateTime, getEventTimingStatus } from '../utils/dateUtils';
+import { formatEventDateTime, getEventTimingStatus, formatDateFriendly } from '../utils/dateUtils';
 import { getCompanyInitials, truncateText } from '../utils/formatUtils';
 
 interface CompanyCardProps {
@@ -13,6 +13,12 @@ interface CompanyCardProps {
 export const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
   const nextEvent = company.nextEvent;
   const timingStatus = nextEvent ? getEventTimingStatus(nextEvent.dateTime, nextEvent.date) : null;
+
+  const pastEvents = company.events.filter(
+    (e) => getEventTimingStatus(e.dateTime, e.date) === 'PAST'
+  );
+  const lastPastEvent = pastEvents.length > 0 ? pastEvents[pastEvents.length - 1] : undefined;
+  const isPastCompany = !nextEvent && (pastEvents.length > 0 || company.events.length > 0);
 
   const getBadgeStyle = () => {
     if (!timingStatus) return 'bg-slate-100 text-slate-600 border-slate-200';
@@ -43,7 +49,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
     <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300 transition-all duration-200 flex flex-col justify-between overflow-hidden group">
       <div className="p-4 sm:p-6">
         <div className="flex items-start justify-between gap-3 mb-3">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             {company.logoUrl ? (
               <img
                 src={company.logoUrl}
@@ -63,28 +69,58 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
               {getCompanyInitials(company.companyName)}
             </div>
 
-            <div>
-              <h3 className="font-bold text-slate-900 text-base sm:text-lg group-hover:text-indigo-600 transition-colors leading-snug">
-                {company.companyName}
-              </h3>
-              <div className="flex flex-wrap items-center gap-1.5 mt-1 text-xs text-slate-500">
-                {company.roleOffered && (
-                  <span className="inline-flex items-center gap-1 font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100/80">
-                    <Briefcase className="w-3 h-3 text-indigo-500" />
-                    {company.roleOffered}
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <h3 className="font-bold text-slate-900 text-base sm:text-lg group-hover:text-indigo-600 transition-colors leading-snug">
+                  {company.companyName}
+                </h3>
+                {isPastCompany && (
+                  <span className="inline-flex items-center gap-1 font-bold text-[10px] sm:text-[11px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md border border-slate-300 uppercase tracking-wider shrink-0">
+                    <CheckCircle2 className="w-3 h-3 text-slate-500" />
+                    PAST DRIVE
                   </span>
                 )}
-                <span className="flex items-center gap-1 font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
-                  <Banknote className="w-3.5 h-3.5 text-emerald-600" />
-                  {company.package}
-                </span>
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                  {company.location}
-                </span>
+              </div>
+              <div className="flex items-center gap-1 mt-0.5 text-xs text-slate-500 font-medium">
+                <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span>{company.location}</span>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* ROLES & COMPENSATION PREVIEW */}
+        <div className="space-y-1 mb-3 bg-slate-50/80 p-2.5 rounded-xl border border-slate-200/60">
+          {company.roles && company.roles.length > 0 ? (
+            <>
+              {company.roles.slice(0, 2).map((r, idx) => (
+                <div key={idx} className="flex items-center justify-between gap-2 text-xs">
+                  <span className="font-semibold text-slate-800 truncate flex items-center gap-1.5">
+                    <Briefcase className="w-3 h-3 text-indigo-500 shrink-0" />
+                    <span className="truncate">{r.roleName}</span>
+                  </span>
+                  <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100/80 shrink-0 text-[11px]">
+                    {r.ctc}
+                  </span>
+                </div>
+              ))}
+              {company.roles.length > 2 && (
+                <div className="text-[11px] font-semibold text-indigo-600 pt-0.5">
+                  + {company.roles.length - 2} more role{company.roles.length - 2 > 1 ? 's' : ''}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="flex items-center justify-between gap-2 text-xs">
+              <span className="font-semibold text-slate-800 truncate flex items-center gap-1.5">
+                <Briefcase className="w-3 h-3 text-indigo-500 shrink-0" />
+                <span className="truncate">{company.roleOffered || 'Software Engineer'}</span>
+              </span>
+              <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100/80 shrink-0 text-[11px]">
+                {company.package || 'N/A'}
+              </span>
+            </div>
+          )}
         </div>
 
         <p className="text-slate-600 text-xs sm:text-sm line-clamp-2 mb-3.5 leading-relaxed">
@@ -116,6 +152,32 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
               <Calendar className="w-3.5 h-3.5 text-indigo-500" />
               {formatEventDateTime(nextEvent)}
             </p>
+          </div>
+        ) : isPastCompany ? (
+          <div className="bg-slate-100/90 rounded-xl p-3 sm:p-3.5 border border-slate-200 mb-1">
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <span className="text-[11px] font-bold tracking-wider text-slate-600 uppercase">
+                Drive Status
+              </span>
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-slate-200 text-slate-800 border border-slate-300">
+                <CheckCircle2 className="w-3.5 h-3.5 text-slate-500" />
+                PAST DRIVE
+              </span>
+            </div>
+
+            {lastPastEvent ? (
+              <>
+                <p className="text-xs font-semibold text-slate-700">
+                  {lastPastEvent.title || EVENT_TYPE_LABELS[lastPastEvent.eventType]} (Completed)
+                </p>
+                <p className="text-xs text-slate-500 font-medium mt-0.5 flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                  Completed on {formatDateFriendly(lastPastEvent.date || lastPastEvent.dateTime)}
+                </p>
+              </>
+            ) : (
+              <p className="text-xs text-slate-600 font-medium">Recruitment drive concluded.</p>
+            )}
           </div>
         ) : (
           <div className="bg-slate-50 rounded-xl p-3 text-center border border-dashed border-slate-200 mb-1">

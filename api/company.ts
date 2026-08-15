@@ -33,8 +33,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .sort({ dateTime: 1 })
       .toArray();
 
+    const roles =
+      Array.isArray(company.roles) && company.roles.length > 0
+        ? company.roles
+        : company.roleOffered || company.package
+        ? [{ roleName: company.roleOffered || 'Software Engineer', ctc: company.package || 'N/A' }]
+        : [];
+
     const formattedCompany = {
       ...company,
+      roles,
       _id: company._id.toString(),
       companyId: compId,
     };

@@ -100,18 +100,8 @@ export const CompanyDetails: React.FC = () => {
               <div>
                 <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 leading-tight">{company.companyName}</h1>
                 <div className="flex flex-wrap items-center gap-2 mt-2 text-xs sm:text-sm">
-                  {company.roleOffered && (
-                    <span className="flex items-center gap-1 font-semibold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200/60">
-                      <Briefcase className="w-3.5 h-3.5 text-indigo-600" />
-                      Role: {company.roleOffered}
-                    </span>
-                  )}
-                  <span className="flex items-center gap-1 font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/60">
-                    <Banknote className="w-3.5 h-3.5 text-emerald-600" />
-                    Package: {company.package}
-                  </span>
-                  <span className="flex items-center gap-1 font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg">
-                    <MapPin className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="flex items-center gap-1.5 font-semibold text-slate-700 bg-slate-100 px-3 py-1 rounded-lg">
+                    <MapPin className="w-4 h-4 text-slate-500" />
                     Location: {company.location}
                   </span>
                 </div>
@@ -129,6 +119,41 @@ export const CompanyDetails: React.FC = () => {
                 <ExternalLink className="w-4 h-4" />
               </a>
             )}
+          </div>
+
+          {/* ROLES & COMPENSATION */}
+          <div className="space-y-3 border-b border-slate-100 pb-6">
+            <h2 className="text-xs font-extrabold uppercase tracking-wider text-indigo-600">Roles & Compensation</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
+              {company.roles && company.roles.length > 0 ? (
+                company.roles.map((r, index) => (
+                  <div
+                    key={index}
+                    className="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-4 space-y-1.5 hover:border-indigo-200 transition-colors shadow-2xs"
+                  >
+                    <div className="flex items-center gap-2 text-slate-900 font-bold text-sm sm:text-base leading-snug">
+                      <Briefcase className="w-4 h-4 text-indigo-600 shrink-0" />
+                      <span>{r.roleName}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-emerald-700 font-extrabold text-sm sm:text-base pt-0.5">
+                      <Banknote className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>{r.ctc}</span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-4 space-y-1.5">
+                  <div className="flex items-center gap-2 text-slate-900 font-bold text-sm sm:text-base">
+                    <Briefcase className="w-4 h-4 text-indigo-600 shrink-0" />
+                    <span>{company.roleOffered || 'Software Engineer'}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-emerald-700 font-extrabold text-sm sm:text-base">
+                    <Banknote className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>{company.package || 'N/A'}</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div>

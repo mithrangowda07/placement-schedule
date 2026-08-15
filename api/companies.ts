@@ -23,11 +23,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       events = await eventsCol.find({}).toArray();
     }
 
-    const formattedCompanies = companies.map((c) => ({
-      ...c,
-      _id: c._id.toString(),
-      companyId: c.companyId || c._id.toString(),
-    }));
+    const formattedCompanies = companies.map((c) => {
+      const roles =
+        Array.isArray(c.roles) && c.roles.length > 0
+          ? c.roles
+          : c.roleOffered || c.package
+          ? [{ roleName: c.roleOffered || 'Software Engineer', ctc: c.package || 'N/A' }]
+          : [];
+      return {
+        ...c,
+        roles,
+        _id: c._id.toString(),
+        companyId: c.companyId || c._id.toString(),
+      };
+    });
 
     const formattedEvents = events.map((e) => ({
       ...e,

@@ -5,6 +5,10 @@ export const INITIAL_COMPANIES: Company[] = [
   {
     companyId: 'google-rvce-2026',
     companyName: 'Google',
+    roles: [
+      { roleName: 'Software Engineering (SDE)', ctc: '15.5 LPA' },
+      { roleName: 'Software Engineering Intern', ctc: '1.2 Lakh/pm' },
+    ],
     roleOffered: 'Software Engineering (SDE)',
     logoUrl: 'https://www.google.com/favicon.ico',
     package: '15.5 LPA',
@@ -17,6 +21,9 @@ export const INITIAL_COMPANIES: Company[] = [
   {
     companyId: 'amazon-rvce-2026',
     companyName: 'Amazon',
+    roles: [
+      { roleName: 'Software Development Engineer I (SDE-1)', ctc: '14.2 LPA' },
+    ],
     roleOffered: 'Software Development Engineer I (SDE-1)',
     logoUrl: 'https://www.amazon.com/favicon.ico',
     package: '14.2 LPA',
@@ -29,6 +36,10 @@ export const INITIAL_COMPANIES: Company[] = [
   {
     companyId: 'microsoft-rvce-2026',
     companyName: 'Microsoft',
+    roles: [
+      { roleName: 'Software Engineer (MSIDC)', ctc: '18 LPA' },
+      { roleName: 'Support Engineer', ctc: '12 LPA' },
+    ],
     roleOffered: 'Software Engineer (MSIDC)',
     logoUrl: 'https://www.microsoft.com/favicon.ico',
     package: '18 LPA',
@@ -41,6 +52,10 @@ export const INITIAL_COMPANIES: Company[] = [
   {
     companyId: 'cisco-rvce-2026',
     companyName: 'Cisco',
+    roles: [
+      { roleName: 'Technical Consulting Engineer', ctc: '13 LPA' },
+      { roleName: 'Software Engineer', ctc: '15 LPA' },
+    ],
     roleOffered: 'Technical Consulting Engineer & SDE',
     logoUrl: 'https://www.cisco.com/favicon.ico',
     package: '13 LPA',

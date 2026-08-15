@@ -25,7 +25,7 @@ export async function getAllUpcomingEvents(): Promise<EventWithCompany[]> {
         allEvents.push({
           ...evt,
           companyName: company.companyName,
-          companyPackage: company.package,
+          companyPackage: company.roles && company.roles.length > 0 ? company.roles[0].ctc : company.package || 'N/A',
           companyLocation: company.location,
           companyLogoUrl: company.logoUrl,
         });

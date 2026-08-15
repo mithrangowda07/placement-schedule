@@ -27,15 +27,45 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Company name is required' });
       }
 
+      let parsedRoles: Array<{ roleName: string; ctc: string }> = [];
+
+      if (Array.isArray(compData.roles) && compData.roles.length > 0) {
+        for (let i = 0; i < compData.roles.length; i++) {
+          const r = compData.roles[i];
+          if (!r || !r.roleName || !r.roleName.trim()) {
+            return res.status(400).json({ error: `Role name is required for role #${i + 1}.` });
+          }
+          if (!r || !r.ctc || !r.ctc.trim()) {
+            return res.status(400).json({ error: `CTC is required for role #${i + 1}.` });
+          }
+          parsedRoles.push({
+            roleName: r.roleName.trim(),
+            ctc: r.ctc.trim(),
+          });
+        }
+      } else if (compData.roleOffered || compData.package) {
+        parsedRoles = [
+          {
+            roleName: compData.roleOffered?.trim() || 'Software Engineer',
+            ctc: compData.package?.trim() || 'N/A',
+          },
+        ];
+      }
+
+      if (parsedRoles.length === 0) {
+        return res.status(400).json({ error: 'At least one role with role name and CTC is required.' });
+      }
+
       const nowIso = new Date().toISOString();
       const companyId = compData.companyId || `comp-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
 
       const companyDoc = {
         companyId,
         companyName: compData.companyName.trim(),
-        roleOffered: compData.roleOffered?.trim() || undefined,
+        roles: parsedRoles,
+        roleOffered: parsedRoles[0]?.roleName,
+        package: parsedRoles[0]?.ctc,
         logoUrl: compData.logoUrl?.trim() || undefined,
-        package: compData.package?.trim() || 'N/A',
         location: compData.location?.trim() || 'Bangalore',
         description: compData.description?.trim() || '',
         registrationUrl: compData.registrationUrl?.trim() || undefined,
@@ -94,12 +124,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Company name is required' });
       }
 
+      let parsedRoles: Array<{ roleName: string; ctc: string }> = [];
+
+      if (Array.isArray(companyData.roles) && companyData.roles.length > 0) {
+        for (let i = 0; i < companyData.roles.length; i++) {
+          const r = companyData.roles[i];
+          if (!r || !r.roleName || !r.roleName.trim()) {
+            return res.status(400).json({ error: `Role name is required for role #${i + 1}.` });
+          }
+          if (!r || !r.ctc || !r.ctc.trim()) {
+            return res.status(400).json({ error: `CTC is required for role #${i + 1}.` });
+          }
+          parsedRoles.push({
+            roleName: r.roleName.trim(),
+            ctc: r.ctc.trim(),
+          });
+        }
+      } else if (companyData.roleOffered || companyData.package) {
+        parsedRoles = [
+          {
+            roleName: companyData.roleOffered?.trim() || 'Software Engineer',
+            ctc: companyData.package?.trim() || 'N/A',
+          },
+        ];
+      }
+
+      if (parsedRoles.length === 0) {
+        return res.status(400).json({ error: 'At least one role with role name and CTC is required.' });
+      }
+
       const nowIso = new Date().toISOString();
 
       const updateFields: any = {
         companyName: companyData.companyName.trim(),
-        roleOffered: companyData.roleOffered?.trim() || undefined,
-        package: companyData.package?.trim() || 'N/A',
+        roles: parsedRoles,
+        roleOffered: parsedRoles[0]?.roleName,
+        package: parsedRoles[0]?.ctc,
         location: companyData.location?.trim() || 'Bangalore',
         description: companyData.description?.trim() || '',
         logoUrl: companyData.logoUrl?.trim() || undefined,
