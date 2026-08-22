@@ -8,7 +8,7 @@ import type { FilterOption } from '../components/FilterBar';
 import { CompanyCard } from '../components/CompanyCard';
 import { EventCard } from '../components/EventCard';
 import { CompanySkeletonGrid } from '../components/LoadingSkeleton';
-import { getEventTimingStatus, isEventThisWeek, parseAsIST, getEventPriorityScore } from '../utils/dateUtils';
+import { getEventTimingStatus, getISTDateString, formatDateCompact, parseAsIST, getEventPriorityScore } from '../utils/dateUtils';
 import type { PlacementEvent } from '../types/event';
 
 interface EventWithCompanyMeta extends PlacementEvent {
@@ -24,6 +24,7 @@ export const Home: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeFilter, setActiveFilter] = useState<FilterOption>('ALL');
+  const [selectedDate, setSelectedDate] = useState<string>('');
   const [showPastEvents, setShowPastEvents] = useState<boolean>(false);
 
   const fetchPlacementData = async () => {
@@ -80,15 +81,15 @@ export const Home: React.FC = () => {
 
     let todayCount = 0;
     let tomorrowCount = 0;
-    let thisWeekCount = 0;
+    let selectedDateCount = 0;
 
     allEventsFlattened.forEach((evt) => {
       const timingStatus = getEventTimingStatus(evt.dateTime, evt.date);
-      const isThisWk = isEventThisWeek(evt.dateTime, evt.date);
+      const evtDateStr = evt.date || getISTDateString(evt.dateTime);
 
       if (timingStatus === 'TODAY') todayCount++;
       if (timingStatus === 'TOMORROW') tomorrowCount++;
-      if (isThisWk) thisWeekCount++;
+      if (selectedDate && evtDateStr === selectedDate) selectedDateCount++;
 
       if (timingStatus === 'PAST') {
         past.push(evt);
@@ -124,10 +125,10 @@ export const Home: React.FC = () => {
         all: upcoming.length,
         today: todayCount,
         tomorrow: tomorrowCount,
-        thisWeek: thisWeekCount,
+        selectedDateCount,
       },
     };
-  }, [allEventsFlattened]);
+  }, [allEventsFlattened, selectedDate]);
 
   const upcomingCompanies = useMemo(() => {
     return filteredCompanies.filter((comp) =>
@@ -136,8 +137,8 @@ export const Home: React.FC = () => {
   }, [filteredCompanies]);
 
   const displayedCompanies = useMemo(() => {
-    // When user is searching, include all matching companies (both upcoming and past)
-    const baseList = searchQuery.trim() ? filteredCompanies : upcomingCompanies;
+    // When user is searching or choosing a specific date, search across all companies (upcoming & past)
+    const baseList = searchQuery.trim() || activeFilter === 'DATE' ? filteredCompanies : upcomingCompanies;
 
     let result = baseList;
     if (activeFilter !== 'ALL') {
@@ -146,7 +147,11 @@ export const Home: React.FC = () => {
           const timingStatus = getEventTimingStatus(evt.dateTime, evt.date);
           if (activeFilter === 'TODAY') return timingStatus === 'TODAY';
           if (activeFilter === 'TOMORROW') return timingStatus === 'TOMORROW';
-          if (activeFilter === 'THIS_WEEK') return isEventThisWeek(evt.dateTime, evt.date);
+          if (activeFilter === 'DATE') {
+            if (!selectedDate) return true;
+            const evtDateStr = evt.date || getISTDateString(evt.dateTime);
+            return evtDateStr === selectedDate;
+          }
           return true;
         });
       });
@@ -163,7 +168,7 @@ export const Home: React.FC = () => {
       const timeB = b.nextEvent ? parseAsIST(b.nextEvent.dateTime).getTime() : Number.MAX_SAFE_INTEGER;
       return timeA - timeB;
     });
-  }, [searchQuery, filteredCompanies, upcomingCompanies, activeFilter]);
+  }, [searchQuery, activeFilter, selectedDate, filteredCompanies, upcomingCompanies]);
 
   return (
     <div className="min-h-screen bg-slate-50 pb-16">
@@ -238,11 +243,19 @@ export const Home: React.FC = () => {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
                 <div>
                   <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight uppercase">
-                    {searchQuery.trim() ? `SEARCH RESULTS (${displayedCompanies.length})` : 'UPCOMING'}
+                    {searchQuery.trim()
+                      ? `SEARCH RESULTS (${displayedCompanies.length})`
+                      : activeFilter === 'DATE'
+                      ? selectedDate
+                        ? `ACTIVITIES ON ${formatDateCompact(selectedDate)} (${displayedCompanies.length})`
+                        : `CHOOSE A DATE (${displayedCompanies.length})`
+                      : 'UPCOMING'}
                   </h2>
                   <p className="text-xs text-slate-500">
                     {searchQuery.trim()
                       ? `Showing placement drives matching "${searchQuery}" (upcoming & past)`
+                      : activeFilter === 'DATE' && selectedDate
+                      ? `Placement drives with scheduled activities on ${formatDateCompact(selectedDate)}`
                       : 'Placement drives & activities'}
                   </p>
                 </div>
@@ -250,6 +263,8 @@ export const Home: React.FC = () => {
                 <FilterBar
                   activeFilter={activeFilter}
                   onSelectFilter={setActiveFilter}
+                  selectedDate={selectedDate}
+                  onSelectDate={setSelectedDate}
                   counts={filterCounts}
                 />
               </div>
